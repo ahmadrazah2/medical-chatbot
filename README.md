@@ -1,58 +1,52 @@
-Below is a clean, GitHub-ready **README.md** for your **Medical Chatbot (RAG)** project (LangChain + Chroma + Mistral GGUF + multilingual embeddings).
 
-```markdown
-# 🏥 Medical Chatbot (RAG) — LangChain + Chroma + Mistral (GGUF)
+# 🏥 Medical Chatbot using RAG (LangChain + Mistral)
 
-A **Retrieval-Augmented Generation (RAG)** medical chatbot built with **LangChain**.  
-It answers questions using a **medical book** as a knowledge base, retrieves relevant chunks from **ChromaDB**, and generates responses using a **local Mistral 7B Instruct GGUF** model.
+A **Retrieval-Augmented Generation (RAG)** based **medical chatbot** that answers medical questions using a **medical book as knowledge base**.  
+The system uses **LangChain**, **ChromaDB**, **multilingual embeddings**, and a **local Mistral 7B Instruct GGUF model** for offline, fast, and reliable inference.
 
 ---
 
-## ✨ Features
+## 🚀 Features
 
-- ✅ **RAG pipeline** (retrieve + generate)
-- ✅ **Local LLM** using GGUF model (fast, offline)
-- ✅ **Multilingual embeddings** (Korean + English support)
-- ✅ **Chroma vector database** with persistence (reuse embeddings without re-indexing)
-- ✅ Document chunking with overlap for better retrieval
-
----
-
-## 🧠 Tech Stack
-
-- **LLM:** `Mistral-7B-Instruct-v0.3.Q6_K.gguf`
-- **Embeddings:** `intfloat/multilingual-e5-large`
-- **Framework:** LangChain
-- **Vector Store:** ChromaDB (persistent)
+- 🔍 Retrieval-Augmented Generation (RAG)
+- 🧠 Local LLM inference (no paid API required)
+- 🌍 Multilingual support (English & Korean)
+- 📚 Medical book–based knowledge retrieval
+- 💾 Persistent vector database (ChromaDB)
+- ⚡ Optimized GGUF model (Q6_K)
 
 ---
 
-## 📁 Project Structure (example)
-system_prompt = (
-    "You are a medical assistant for question-answering tasks. "
-    "Use ONLY the retrieved context to answer. "
-    "If the retrieved context is empty or does not contain the answer, say you don't know. "
-    "Answer in English. "
-    "Do not invent information outside the provided context. "
-    "Keep answers concise (max 3 sentences).\n\n"
-    "Context:\n{context}\n"
-)
+## 🧠 Technology Stack
 
+| Component | Tool |
+|---------|------|
+| LLM | Mistral-7B-Instruct (GGUF) |
+| Framework | LangChain |
+| Embeddings | intfloat/multilingual-e5-large |
+| Vector Store | ChromaDB |
+| Language | Python |
+| Deployment | Local (Offline) |
+
+---
+
+## 📁 Project Structure
 
 ```
 
-medical-chatbot/
+medical-chatbot-rag/
 │
 ├── app.py
 ├── src/
 │   ├── helper.py
 │   ├── prompt.py
-│   └── ...
+│   └── **init**.py
 │
 ├── data/
-│   └── medical_book/   # your medical book files (txt/pdf->txt/etc.)
+│   └── medical_book/      # Medical book text files
 │
-├── chroma_db/          # persisted vector DB (auto-created)
+├── chroma_db/             # Persisted vector database
+│
 ├── models/
 │   └── mistral_models/
 │       └── 7B-Instruct-v0.3-GGUF/
@@ -65,11 +59,9 @@ medical-chatbot/
 
 ---
 
-## 📌 Model & Paths
+## 🤖 Local LLM Configuration
 
-### Local LLM Path (GGUF)
-
-Your project uses this model path:
+The chatbot uses a **local GGUF model**:
 
 ```python
 from pathlib import Path
@@ -82,35 +74,35 @@ llm_path = (
 )
 ````
 
-### Embedding Model
-
-```python
-embedding_model = "intfloat/multilingual-e5-large"
-```
+**Recommended RAM:** 16 GB
+**Context length:** 4096 tokens
 
 ---
 
-## 🔎 Document Chunking
+## 🔎 Embeddings & Chunking
 
-Documents are split into chunks before storing in Chroma:
+### Embedding Model
+
+```python
+intfloat/multilingual-e5-large
+```
+
+### Text Chunking
 
 * `chunk_size = 500`
 * `chunk_overlap = 20`
-
-Function signature:
 
 ```python
 extracted_data: List[Document],
 chunk_size: int = 500,
 chunk_overlap: int = 20,
-) -> List[Document]
 ```
 
 ---
 
-## 🗃️ Vector Store (Chroma) + Persistence
+## 🗃️ Vector Store (ChromaDB)
 
-Chroma is created from document chunks and persisted to disk:
+Documents are embedded and stored persistently:
 
 ```python
 vectorstore = Chroma.from_documents(
@@ -119,24 +111,23 @@ vectorstore = Chroma.from_documents(
     persist_directory=chroma_persist_directory,
 )
 
-# Ensure data is written to disk for reuse by the app.
 vectorstore.persist()
 ```
 
-✅ This means **you only embed once**. Next time, the app can reuse `chroma_db/`.
+✔ Embeddings are generated **once** and reused on every run.
 
 ---
 
 ## ⚙️ Installation
 
-### 1) Create environment (recommended)
+### 1️⃣ Create Environment
 
 ```bash
-conda create -n medbot python=3.10 -y
-conda activate medbot
+conda create -n medicalbot python=3.10 -y
+conda activate medicalbot
 ```
 
-### 2) Install dependencies
+### 2️⃣ Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -144,56 +135,64 @@ pip install -r requirements.txt
 
 ---
 
-## ▶️ Run the App
+## ▶️ Run the Chatbot
 
 ```bash
 python app.py
 ```
 
-If you are using Flask UI:
+If using Flask UI:
 
-* Open: `http://127.0.0.1:5000`
+```
+http://127.0.0.1:5000
+```
 
 ---
 
-## ✅ How it Works (RAG Flow)
+## 🔄 RAG Pipeline Workflow
 
 1. Load medical book documents
-2. Split into chunks (500 chars, overlap 20)
-3. Embed chunks with multilingual-e5-large
-4. Store embeddings in ChromaDB
-5. On user query:
-
-   * Retrieve top relevant chunks
-   * Send context + question to local Mistral 7B
-   * Return final answer (Korean/English based on user input)
+2. Split text into overlapping chunks
+3. Generate multilingual embeddings
+4. Store vectors in ChromaDB
+5. Retrieve relevant context for user query
+6. Generate final answer using Mistral 7B
 
 ---
 
-## 🧪 Notes / Tips
+## 🧪 Tips for Better Results
 
-* **Q6_K** is a strong balance of quality + speed for **16GB RAM** machines.
-* If answers feel weak:
+* Increase retrieval `k` for deeper context
+* Improve prompt to force **context-only answers**
+* Use higher chunk size for long explanations
+* Use Korean prompt template for Korean queries
 
-  * increase retrieved documents (k)
-  * increase chunk size slightly (e.g., 700)
-  * improve prompt to force “use context only”
+---
+
+## 📌 Limitations
+
+* Not a replacement for professional medical advice
+* Depends on quality of medical book data
+* Local inference speed depends on hardware
 
 ---
 
 ## 📜 License
 
-This project is for educational/research use.
-(You can add an MIT License if you want.)
+This project is intended for **educational and research purposes**.
 
 ---
 
 ## 👤 Author
 
 **Ahmad Raza**
-AI & Computer Vision Engineer | RAG + LLM Systems
+AI & Computer Vision Engineer
+Research Focus: RAG Systems, LLMs, Medical AI
+
+🔗 GitHub: [https://github.com/ahmadrazah2](https://github.com/ahmadrazah2)
 
 ```
 
-If you want, paste your **actual folder names** (`src/`, `data/`, etc.) and I’ll adjust the README to match your repo exactly + add a proper `requirements.txt` section.
+
+Just tell me 👍
 ```
