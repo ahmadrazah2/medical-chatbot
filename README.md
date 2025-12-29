@@ -10,7 +10,6 @@ The system uses **LangChain**, **ChromaDB**, **multilingual embeddings**, and a 
 
 - 🔍 Retrieval-Augmented Generation (RAG)
 - 🧠 Local LLM inference (no paid API required)
-- 🌍 Multilingual support (English & Korean)
 - 📚 Medical book–based knowledge retrieval
 - 💾 Persistent vector database (ChromaDB)
 - ⚡ Optimized GGUF model (Q6_K)
