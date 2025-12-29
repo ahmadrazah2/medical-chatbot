@@ -1,130 +1,199 @@
-# Build-a-Complete-Medical-Chatbot-with-LLMs-LangChain-Pinecone-Flask-AWS
+Below is a clean, GitHub-ready **README.md** for your **Medical Chatbot (RAG)** project (LangChain + Chroma + Mistral GGUF + multilingual embeddings).
 
-# How to run?
-### STEPS:
+```markdown
+# 🏥 Medical Chatbot (RAG) — LangChain + Chroma + Mistral (GGUF)
 
-Clone the repository
+A **Retrieval-Augmented Generation (RAG)** medical chatbot built with **LangChain**.  
+It answers questions using a **medical book** as a knowledge base, retrieves relevant chunks from **ChromaDB**, and generates responses using a **local Mistral 7B Instruct GGUF** model.
+
+---
+
+## ✨ Features
+
+- ✅ **RAG pipeline** (retrieve + generate)
+- ✅ **Local LLM** using GGUF model (fast, offline)
+- ✅ **Multilingual embeddings** (Korean + English support)
+- ✅ **Chroma vector database** with persistence (reuse embeddings without re-indexing)
+- ✅ Document chunking with overlap for better retrieval
+
+---
+
+## 🧠 Tech Stack
+
+- **LLM:** `Mistral-7B-Instruct-v0.3.Q6_K.gguf`
+- **Embeddings:** `intfloat/multilingual-e5-large`
+- **Framework:** LangChain
+- **Vector Store:** ChromaDB (persistent)
+
+---
+
+## 📁 Project Structure (example)
+system_prompt = (
+    "You are a medical assistant for question-answering tasks. "
+    "Use ONLY the retrieved context to answer. "
+    "If the retrieved context is empty or does not contain the answer, say you don't know. "
+    "Answer in English. "
+    "Do not invent information outside the provided context. "
+    "Keep answers concise (max 3 sentences).\n\n"
+    "Context:\n{context}\n"
+)
+
+
+```
+
+medical-chatbot/
+│
+├── app.py
+├── src/
+│   ├── helper.py
+│   ├── prompt.py
+│   └── ...
+│
+├── data/
+│   └── medical_book/   # your medical book files (txt/pdf->txt/etc.)
+│
+├── chroma_db/          # persisted vector DB (auto-created)
+├── models/
+│   └── mistral_models/
+│       └── 7B-Instruct-v0.3-GGUF/
+│           └── Mistral-7B-Instruct-v0.3.Q6_K.gguf
+│
+├── requirements.txt
+└── README.md
+
+````
+
+---
+
+## 📌 Model & Paths
+
+### Local LLM Path (GGUF)
+
+Your project uses this model path:
+
+```python
+from pathlib import Path
+
+llm_path = (
+    Path.home()
+    / "mistral_models"
+    / "7B-Instruct-v0.3-GGUF"
+    / "Mistral-7B-Instruct-v0.3.Q6_K.gguf"
+)
+````
+
+### Embedding Model
+
+```python
+embedding_model = "intfloat/multilingual-e5-large"
+```
+
+---
+
+## 🔎 Document Chunking
+
+Documents are split into chunks before storing in Chroma:
+
+* `chunk_size = 500`
+* `chunk_overlap = 20`
+
+Function signature:
+
+```python
+extracted_data: List[Document],
+chunk_size: int = 500,
+chunk_overlap: int = 20,
+) -> List[Document]
+```
+
+---
+
+## 🗃️ Vector Store (Chroma) + Persistence
+
+Chroma is created from document chunks and persisted to disk:
+
+```python
+vectorstore = Chroma.from_documents(
+    documents=text_chunks,
+    embedding=embeddings,
+    persist_directory=chroma_persist_directory,
+)
+
+# Ensure data is written to disk for reuse by the app.
+vectorstore.persist()
+```
+
+✅ This means **you only embed once**. Next time, the app can reuse `chroma_db/`.
+
+---
+
+## ⚙️ Installation
+
+### 1) Create environment (recommended)
 
 ```bash
-git clonehttps://github.com/entbappy/Build-a-Complete-Medical-Chatbot-with-LLMs-LangChain-Pinecone-Flask-AWS.git
-```
-### STEP 01- Create a conda environment after opening the repository
-
-```bash
-conda create -n medibot python=3.10 -y
+conda create -n medbot python=3.10 -y
+conda activate medbot
 ```
 
-```bash
-conda activate medibot
-```
+### 2) Install dependencies
 
-
-### STEP 02- install the requirements
 ```bash
 pip install -r requirements.txt
 ```
 
+---
 
-### Create a `.env` file in the root directory and add your Pinecone & openai credentials as follows:
-
-```ini
-PINECONE_API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-OPENAI_API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-```
-
+## ▶️ Run the App
 
 ```bash
-# run the following command to store embeddings to pinecone
-python store_index.py
-```
-
-```bash
-# Finally run the following command
 python app.py
 ```
 
-Now,
-```bash
-open up localhost:
+If you are using Flask UI:
+
+* Open: `http://127.0.0.1:5000`
+
+---
+
+## ✅ How it Works (RAG Flow)
+
+1. Load medical book documents
+2. Split into chunks (500 chars, overlap 20)
+3. Embed chunks with multilingual-e5-large
+4. Store embeddings in ChromaDB
+5. On user query:
+
+   * Retrieve top relevant chunks
+   * Send context + question to local Mistral 7B
+   * Return final answer (Korean/English based on user input)
+
+---
+
+## 🧪 Notes / Tips
+
+* **Q6_K** is a strong balance of quality + speed for **16GB RAM** machines.
+* If answers feel weak:
+
+  * increase retrieved documents (k)
+  * increase chunk size slightly (e.g., 700)
+  * improve prompt to force “use context only”
+
+---
+
+## 📜 License
+
+This project is for educational/research use.
+(You can add an MIT License if you want.)
+
+---
+
+## 👤 Author
+
+**Ahmad Raza**
+AI & Computer Vision Engineer | RAG + LLM Systems
+
 ```
 
-
-### Techstack Used:
-
-- Python
-- LangChain
-- Flask
-- GPT
-- Pinecone
-
-
-
-# AWS-CICD-Deployment-with-Github-Actions
-
-## 1. Login to AWS console.
-
-## 2. Create IAM user for deployment
-
-	#with specific access
-
-	1. EC2 access : It is virtual machine
-
-	2. ECR: Elastic Container registry to save your docker image in aws
-
-
-	#Description: About the deployment
-
-	1. Build docker image of the source code
-
-	2. Push your docker image to ECR
-
-	3. Launch Your EC2 
-
-	4. Pull Your image from ECR in EC2
-
-	5. Lauch your docker image in EC2
-
-	#Policy:
-
-	1. AmazonEC2ContainerRegistryFullAccess
-
-	2. AmazonEC2FullAccess
-
-	
-## 3. Create ECR repo to store/save docker image
-    - Save the URI: 315865595366.dkr.ecr.us-east-1.amazonaws.com/medicalbot
-
-	
-## 4. Create EC2 machine (Ubuntu) 
-
-## 5. Open EC2 and Install docker in EC2 Machine:
-	
-	
-	#optinal
-
-	sudo apt-get update -y
-
-	sudo apt-get upgrade
-	
-	#required
-
-	curl -fsSL https://get.docker.com -o get-docker.sh
-
-	sudo sh get-docker.sh
-
-	sudo usermod -aG docker ubuntu
-
-	newgrp docker
-	
-# 6. Configure EC2 as self-hosted runner:
-    setting>actions>runner>new self hosted runner> choose os> then run command one by one
-
-
-# 7. Setup github secrets:
-
-   - AWS_ACCESS_KEY_ID
-   - AWS_SECRET_ACCESS_KEY
-   - AWS_DEFAULT_REGION
-   - ECR_REPO
-   - PINECONE_API_KEY
-   - OPENAI_API_KEY
+If you want, paste your **actual folder names** (`src/`, `data/`, etc.) and I’ll adjust the README to match your repo exactly + add a proper `requirements.txt` section.
+```
